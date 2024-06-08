@@ -1,4 +1,4 @@
-# Pensamento-enchuto-simulado-em-netlogo
+# Pensamento-enxuto-simulado-em-netlogo
 
 - Netlogo - lean thinking - queue - Campus Dining
 
