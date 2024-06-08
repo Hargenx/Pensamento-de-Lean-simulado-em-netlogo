@@ -1,4 +1,4 @@
-# Pensamento-enxuto-simulado-em-netlogo
+# Tempo-de-processor-simulado-em-netlogo
 
 - Netlogo - lean thinking - queue - Campus Dining
 
