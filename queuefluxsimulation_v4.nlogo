@@ -13,7 +13,7 @@ globals [
   total-times
   total-counts
   average-times
-  move-threshold  ;; variável para controlar o tempo aleatório para passar para o próximo estágio
+  move-threshold
   deviation
   total-students
 ]
@@ -37,10 +37,11 @@ to setup
   set total-times n-values (length stages) [0]
   set total-counts n-values (length stages) [0]
   set average-times n-values (length stages) [0]
-  set move-threshold 108  ;; valor codificado transformado em variável global
+  set move-threshold 108
+  set total-students 0
   ask patches [set pcolor 66]
   create-sector
-  create-public initial-group-size  ;; Passando tamanho inicial do grupo
+  create-public initial-group-size
 end
 
 to create-sector
@@ -53,12 +54,11 @@ to create-sector
   ]
 end
 
-to create-public [ initial-size ]
-  crt initial-size [
-    set breed students
+to create-public [initial-size]
+  create-students initial-size [
     set shape "person"
     setxy -11 -16
-    set stage item 0 stages  ;; Todos começam na entrada
+    set stage item 0 stages
     set time-in-stage 0
     set next-stage nobody
     set total-time 0
@@ -81,19 +81,18 @@ to move-students
   ask students [
     let current-index position stage stages
     ifelse current-index = (length stages - 1) [
-      die  ;; remover estudante da simulação
+      set total-students total-students + 1
+      die
     ] [
       set next-stage item (current-index + 1) stages
       if current-index < (length stages - 1) [
         update-stage-time current-index time-in-stage
       ]
-      ;; Verifica se pode se mover para o próximo estágio
-      ifelse count students-on next-stage = 0 and time-in-stage >= random-triangular 10 move-threshold-final 10.8 [
+      ifelse count students-on next-stage = 0 and time-in-stage >= random-triangular 10 move-threshold 10.8 [
         move-to next-stage
         set stage next-stage
         set time-in-stage 0
         set total-time total-time + time-in-stage
-        set total-students 1 + total-students
       ] [
         set time-in-stage time-in-stage + 1
       ]
@@ -107,12 +106,12 @@ to possibly-create-new-students
   ]
 end
 
-to update-stage-time [index time]
+to update-stage-time [ index time ]
   set total-times replace-item index total-times (item index total-times + time)
   set total-counts replace-item index total-counts (item index total-counts + 1)
 end
 
-to-report average-time [total-time-val total-count-val]
+to-report average-time [ total-time-val total-count-val ]
   ifelse total-count-val > 0 [
     report total-time-val / total-count-val
   ] [
@@ -139,7 +138,7 @@ to calculate-standard-deviation
     set deviation std-dev
 end
 
-to-report random-triangular [ min-val max-val mode ]
+to-report random-triangular [min-val max-val mode]
   let u1 random-float 1
   let u2 random-float 1
   let f (mode - min-val) / (max-val - min-val)
@@ -148,6 +147,13 @@ to-report random-triangular [ min-val max-val mode ]
   ] [
     report max-val - sqrt ((1 - u2) * (max-val - min-val) * (max-val - mode))
   ]
+end
+
+to-report format-time [total-ticks]
+  let seconds total-ticks mod 60
+  let minutes (total-ticks / 60) mod 60
+  let hours total-ticks / 3600
+  report (word hours ":" minutes ":" seconds)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -364,25 +370,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-10
-124
-182
-157
+11
+116
+183
+149
 initial-group-size
 initial-group-size
 1
 100
-1.0
+6.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-11
-173
-183
-206
+12
+165
+184
+198
 new-student-prob
 new-student-prob
 0
@@ -394,25 +400,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-11
-230
-183
-263
+13
+214
+185
+247
 move-threshold-final
 move-threshold-final
 10
 12
-10.8
+12.0
 0.1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-668
-376
-741
-421
+676
+359
+749
+404
 NIL
 deviation
 17
@@ -420,13 +426,24 @@ deviation
 11
 
 MONITOR
-753
-374
-851
-419
+761
+357
+859
+402
 NIL
 count students
 17
+1
+11
+
+MONITOR
+714
+412
+806
+457
+NIL
+total-students
+2
 1
 11
 
