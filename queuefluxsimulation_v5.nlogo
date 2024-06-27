@@ -15,6 +15,7 @@ globals [
   average-times   ;; Lista para armazenar os tempos médios de cada estágio
   total-students  ;; Total de estudantes que passaram pelo sistema
   completion-times;; Lista para armazenar os tempos de conclusão de cada estudante
+  student-average-times ;; Lista para armazenar os tempos médios de cada estudante
 ]
 
 to setup
@@ -38,6 +39,7 @@ to setup
   set average-times n-values (length stages) [0]   ;; Inicializa a lista de tempos médios com zeros
   set total-students 0     ;; Inicializa o contador de estudantes total
   set completion-times []  ;; Inicializa a lista de tempos de conclusão vazia
+  set student-average-times []  ;; Inicializa a lista de tempos médios dos estudantes vazia
   ask patches [set pcolor 66]  ;; Define a cor dos patches
   create-sector   ;; Cria os labels dos estágios nos patches
   create-public initial-group-size  ;; Cria um grupo inicial de estudantes
@@ -78,9 +80,12 @@ end
 to move-students
   ask students [
     let current-index position stage stages   ;; Obtém o índice do estágio atual do estudante
+    set total-time total-time + 1   ;; Incrementa o tempo total do estudante
     ifelse current-index = (length stages - 1) [
-      set total-time total-time + time-in-stage   ;; Acumula o tempo no estágio final
-      set completion-times lput total-time completion-times   ;; Armazena o tempo de conclusão do estudante
+      set completion-times lput total-time completion-times   ;; Armazena o tempo de conclusão do estudante no fim da lista
+      let avg-time total-time / (length stages)   ;; Calcula o tempo médio do estudante
+      set student-average-times lput avg-time student-average-times ;; Armazena o tempo médio do estudante
+      show (word "Tempo completando: " completion-times)
       set total-students total-students + 1   ;; Incrementa o contador de estudantes total
       die   ;; Remove o estudante do ambiente
     ] [
@@ -128,17 +133,18 @@ to display-average-times
   ])
   set average-times temp-average-times   ;; Atualiza a lista de tempos médios com a lista temporária
   show (word "Lista de tempos médios: " average-times)   ;; Exibe a lista de tempos médios completa
+  show (word "Lista de tempos médios dos estudantes: " student-average-times) ;; Exibe a lista de tempos médios dos estudantes
 end
+
 
 ;; https://stackoverflow.com/questions/75748226/it-is-possible-to-create-a-normal-distribution-in-netlogo-with-maximum-and-minim
 to-report random-triangular [min-val max-val mode]
-  let u1 random-float 1
-  let u2 random-float 1
+  let rand random-float 1
   let f (mode - min-val) / (max-val - min-val)
-  ifelse u1 <= f [
-    report min-val + sqrt (u2 * (max-val - min-val) * (mode - min-val))   ;; Calcula e retorna um número triangular aleatório dentro do intervalo fornecido
+  ifelse rand <= f [
+    report min-val + sqrt (rand * (max-val - min-val) * (mode - min-val))
   ] [
-    report max-val - sqrt ((1 - u2) * (max-val - min-val) * (max-val - mode))   ;; Calcula e retorna um número triangular aleatório dentro do intervalo fornecido
+    report max-val - sqrt ((1 - rand) * (max-val - min-val) * (max-val - mode))
   ]
 end
 @#$#@#$#@
@@ -339,7 +345,7 @@ initial-group-size
 initial-group-size
 1
 2500
-100.0
+1.0
 1
 1
 NIL
